@@ -1,0 +1,193 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Ajax and input control sample</title>
+<script src="./js/jquery-2.1.1.js"></script>
+<script src="./js/underscore-min.js"></script>
+<link rel="stylesheet" href="./css/bootstrap.min.css"></script>
+
+<!-- Optional theme -->
+<link rel="stylesheet" href="./css/bootstrap-theme.min.css"></script>
+
+<!-- Latest compiled and minified JavaScript -->
+<script src="./js/bootstrap.min.js"></script>
+<style type="text/css">
+*{ margin:0; padding:0;}
+*, *:before, *:after {
+    box-sizing: border-box;
+}
+.main {
+    width:100%;
+    margin-top:20px;
+   
+}
+.column{
+    float: left;
+    width: 33.3333%;
+    padding:0 20px;
+    text-align:center;
+}
+.column div{ padding:20px 0px;}
+.column_1 div{
+    /* background-color: #3F5E6F; */
+    border-color: #36505F;
+    color: #FFFFFF;
+}
+.column_2 div{
+    /* background-color: #006848; */
+    border-color: #004E36;
+    color: #FFFFFF;
+}
+.column_3 div{
+    /* background-color: #D76300; */
+    border-color: #BE5700;
+    color: #FFFFFF;
+}
+@media screen and (max-width:1000px)
+{
+    .column{ width:100% !important; margin-bottom:10px}
+}
+</style>
+</head>
+<body>
+<div id="contInputControl"></div><div id="contInputControlJsonp"></div>
+<button type="button" id="applyValue">Apply ajax value</button>
+<button type="button" id="applyValueJsonp">Apply ajax/jsonp value</button>
+<button type="button" id="test">test</button> 
+<!-- window.location.href="/someurl"; -->
+<div id="contReport"></div>
+<!--script src="./js/jquery-2.1.0.js"></script>
+<script src="./js/underscore-min.js"></script-->
+<script type="text/javascript" src="http://localhost:8630/jasperserver-pro/client/visualize.js?_opt=true"></script> 
+<script type="text/javascript">
+visualize(
+{
+	server : "http://localhost:8630/jasperserver-pro", 
+	auth: { 
+		name: "superuser",
+		password: "superuser"
+	} 
+}, 
+function (v) {
+
+	$.ajax({
+			url: "http://localhost:8630/jasperserver-pro/rest_v2/reports/public/Samples/Reports/9.CustomerDetailReport/inputControls/",
+			dataType: 'json',
+				cache: false,
+				accept: { json: "application/json"},
+				success: function( controls ) {
+						console.log( controls );
+						(controls.inputControl).forEach(buildControl);
+						/*
+						for (var n = 0; n < (controls.inputControl).length; n++){
+							var cont = buildControl(controls);
+							$("#contInputControl").append($(cont));
+						}
+						*/
+				}
+	});
+
+	/*
+	v.inputControls({
+		resource: "/public/Samples/Reports/9.CustomerDetailReport",
+		success: function (controls) {
+			controls.forEach(buildControl);
+			$('#applyValue').on('click', function(){
+				report
+					.params({ "customerId": [ $('#customerId').val()]})
+					.run();
+			});
+			
+
+		},
+		error: function (err) {
+			alert(err);
+		}
+	});
+	*/
+	
+	var report = v.report({
+		resource: "/public/Samples/Reports/9.CustomerDetailReport",
+		container: "#contReport"
+	});
+	report
+	.params({ "customerId": ["3872"] })
+	.run();
+
+	$('#applyValue').on('click', function(){
+		report
+		.params({ "customerId": [ $('#customerId').val()]})
+		.run();
+	});
+	
+	$('#applyValueJsonp').on('click', function(){
+		report
+		.params({ "customerId": [ $('#customerIdJsonp').val()]})
+		.run();
+	});
+
+});
+
+	function buildControl(control) {
+		function buildOptions(options) {
+			var template = "<option value={value} {selected}>{label}</option>";
+			
+			return options.reduce(function (memo, option) {
+				replaceValue = template.replace("{value}", option.value);
+				replaceLabel = replaceValue.replace("{label}", option.label);
+				if(option.selected == false)
+					replaceSelected = replaceLabel.replace("{selected}", '');
+				else
+					replaceSelected = replaceLabel.replace("{selected}", 'selected');
+				return memo + replaceSelected;
+			}, "")
+		}
+		
+		var template = "<label>{label}</label><p><select id='customerId'>{options}</select><br>",
+		content = template.replace("{label}", control.label).replace("{options}", buildOptions(control.state.options));
+		$("#contInputControl").append($(content));
+	}
+
+	function buildControlJsonp(control) {
+		function buildOptions(options) {
+			var template = "<option value={value} {selected}>{label}</option>";
+		
+			return options.reduce(function (memo, option) {
+				replaceValue = template.replace("{value}", $(option).find('value').text());
+				replaceLabel = replaceValue.replace("{label}", $(option).find('label').text());
+				if($(option).find('selected').text() == "false")
+					replaceSelected = replaceLabel.replace("{selected}", '');
+				else
+					replaceSelected = replaceLabel.replace("{selected}", 'selected');
+				return memo + replaceSelected;
+			}, "")
+		}
+		
+		var template = "<label>{label}</label><p><select id='customerIdJsonp'>{options}</select><br>",
+		content = template.replace("{label}", $(control).find('inputControl').children()[2].innerHTML).replace("{options}", buildOptions($(control).find('inputControl>state>options').children().toArray()));
+		$("#contInputControlJsonp").append($(content));
+	}
+	
+$('#test').on('click', function(){
+			
+			$.ajax({
+			url: "http://localhost:8630/jasperserver-pro/rest_v2/reports/public/Samples/Reports/9.CustomerDetailReport/inputControls/",
+			dataType: 'jsonp',
+				cache: false,
+				accept: { json: "application/json"},
+				success: function( controls ) {
+						console.log( controls );
+				},
+				error: function(controls) {
+					console.log( $.parseXML( controls.responseText ));
+					var options = $.parseXML( controls.responseText );
+					buildControlJsonp(options);
+					
+				}
+	});
+});
+
+</script>
+</body>
+</html>
