@@ -50,13 +50,10 @@ function (v) {
 	
 	var report = v.report({
 		resource: "/public/Samples/Reports/9.CustomerDetailReport",
+		//params: { "customerId": ["3872"] },
 		container: "#contReport"
 	});
 	
-	report
-	.params({ "customerId": ["3872"] })
-	.run();
-
 	$('#applyValue').on('click', function(){
 		report
 		.params({ "customerId": [ $('#customerId').val()]})
